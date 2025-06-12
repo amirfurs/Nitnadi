@@ -213,6 +213,12 @@ async def setup_server_command(interaction: discord.Interaction, config_name: st
             await interaction.followup.send(f"❌ لم يتم العثور على إعداد بالاسم: {config_name}")
             return
         
+        # Store guild ID in config for future use
+        await db.server_configs.update_one(
+            {"name": config_name},
+            {"$set": {"guild_id": str(interaction.guild.id)}}
+        )
+        
         # Create setup status
         setup_status = SetupStatus(
             guild_id=str(interaction.guild.id),
@@ -229,12 +235,144 @@ async def setup_server_command(interaction: discord.Interaction, config_name: st
         success = await setup_discord_server(interaction.guild, config_doc, setup_status.id)
         
         if success:
-            await interaction.followup.send("✅ تم إعداد السيرفر بنجاح!")
+            # Send detailed setup completion message
+            embed = discord.Embed(
+                title="✅ تم إعداد السيرفر بنجاح!",
+                description=f"تم إنشاء السيرفر باستخدام إعداد: **{config_name}**",
+                color=discord.Color.green()
+            )
+            
+            # Add feature information
+            features = []
+            if config_doc.get('welcome_settings', {}).get('enabled'):
+                features.append("🎉 رسائل الترحيب مفعلة")
+            if config_doc.get('auto_role_settings', {}).get('enabled'):
+                features.append("👤 توزيع الأدوار التلقائي مفعل")
+            
+            if features:
+                embed.add_field(name="الميزات المفعلة:", value="\n".join(features), inline=False)
+                
+            await interaction.followup.send(embed=embed)
         else:
             await interaction.followup.send("❌ حدث خطأ أثناء إعداد السيرفر.")
             
     except Exception as e:
         await interaction.followup.send(f"❌ خطأ: {str(e)}")
+
+@bot.tree.command(name="configure_welcome", description="إعداد رسائل الترحيب للسيرفر")
+async def configure_welcome(interaction: discord.Interaction, 
+                          channel_name: str = "الترحيب",
+                          message: str = "مرحباً {user} في {server}! 🎉"):
+    """Configure welcome messages for the server"""
+    try:
+        guild_id = str(interaction.guild.id)
+        
+        # Update welcome settings in database
+        welcome_settings = {
+            "enabled": True,
+            "channel": channel_name,
+            "message": message,
+            "use_embed": True,
+            "title": "مرحباً بك! 🎉",
+            "color": "#00ff00",
+            "thumbnail": True,
+            "footer": f"مرحباً بك في {interaction.guild.name}"
+        }
+        
+        await db.server_configs.update_one(
+            {"guild_id": guild_id},
+            {"$set": {"welcome_settings": welcome_settings}},
+            upsert=True
+        )
+        
+        embed = discord.Embed(
+            title="✅ تم إعداد رسائل الترحيب!",
+            description=f"القناة: #{channel_name}\nالرسالة: {message}",
+            color=discord.Color.green()
+        )
+        
+        await interaction.response.send_message(embed=embed)
+        
+    except Exception as e:
+        await interaction.response.send_message(f"❌ خطأ: {str(e)}")
+
+@bot.tree.command(name="configure_autorole", description="إعداد توزيع الأدوار التلقائي")
+async def configure_autorole(interaction: discord.Interaction, roles: str):
+    """Configure automatic role assignment"""
+    try:
+        guild_id = str(interaction.guild.id)
+        role_list = [role.strip() for role in roles.split(',')]
+        
+        # Validate roles exist
+        valid_roles = []
+        for role_name in role_list:
+            role = discord.utils.get(interaction.guild.roles, name=role_name)
+            if role:
+                valid_roles.append(role_name)
+        
+        if not valid_roles:
+            await interaction.response.send_message("❌ لم يتم العثور على أي من الأدوار المحددة.")
+            return
+        
+        auto_role_settings = {
+            "enabled": True,
+            "roles": valid_roles
+        }
+        
+        await db.server_configs.update_one(
+            {"guild_id": guild_id},
+            {"$set": {"auto_role_settings": auto_role_settings}},
+            upsert=True
+        )
+        
+        embed = discord.Embed(
+            title="✅ تم إعداد توزيع الأدوار التلقائي!",
+            description=f"الأدوار: {', '.join(valid_roles)}",
+            color=discord.Color.green()
+        )
+        
+        await interaction.response.send_message(embed=embed)
+        
+    except Exception as e:
+        await interaction.response.send_message(f"❌ خطأ: {str(e)}")
+
+@bot.tree.command(name="test_welcome", description="اختبار رسالة الترحيب")
+async def test_welcome(interaction: discord.Interaction):
+    """Test welcome message"""
+    try:
+        # Simulate member join for testing
+        member = interaction.user
+        
+        guild_id = str(interaction.guild.id)
+        config = await db.server_configs.find_one({"guild_id": guild_id})
+        
+        if not config or not config.get('welcome_settings', {}).get('enabled'):
+            await interaction.response.send_message("❌ رسائل الترحيب غير مفعلة في هذا السيرفر.")
+            return
+        
+        welcome_settings = config['welcome_settings']
+        welcome_message = welcome_settings.get('message', 'مرحباً {user} في {server}! 🎉')
+        welcome_message = welcome_message.format(
+            user=member.mention,
+            server=interaction.guild.name,
+            username=member.display_name
+        )
+        
+        embed = discord.Embed(
+            title=welcome_settings.get('title', 'مرحباً بك! 🎉'),
+            description=welcome_message + "\n\n**(هذه رسالة اختبار)**",
+            color=discord.Color(int(welcome_settings.get('color', '#00ff00').replace('#', ''), 16))
+        )
+        
+        if welcome_settings.get('thumbnail'):
+            embed.set_thumbnail(url=member.display_avatar.url)
+        
+        embed.set_footer(text="اختبار رسالة الترحيب")
+        
+        await interaction.response.send_message(embed=embed)
+        
+    except Exception as e:
+        await interaction.response.send_message(f"❌ خطأ: {str(e)}")
 
 @bot.tree.command(name="list_configs", description="عرض قائمة الإعدادات المحفوظة")
 async def list_configs_command(interaction: discord.Interaction):
