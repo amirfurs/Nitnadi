@@ -62,6 +62,9 @@ class ServerConfigCreate(BaseModel):
     icon_url: Optional[str] = None
     roles: List[Dict[str, Any]]
     channels: List[Dict[str, Any]]
+    welcome_settings: Optional[Dict[str, Any]] = None
+    auto_role_settings: Optional[Dict[str, Any]] = None
+    moderation_settings: Optional[Dict[str, Any]] = None
 
 class SetupRequest(BaseModel):
     guild_id: str
