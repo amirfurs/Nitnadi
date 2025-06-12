@@ -429,8 +429,25 @@ async def setup_discord_server(guild: discord.Guild, config: Dict, status_id: st
         return False
 
 async def create_roles(guild: discord.Guild, roles_config: List[Dict]):
-    """Create roles based on configuration"""
+    """Create roles based on configuration - supports both detailed and simplified formats"""
     role_mapping = {}
+    
+    # Permission mappings for string-based permissions
+    permission_mappings = {
+        'administrator': 8,
+        'manage_guild': 32,
+        'manage_roles': 268435456,
+        'manage_channels': 16,
+        'kick_members': 2,
+        'ban_members': 4,
+        'manage_messages': 8192,
+        'moderate_members': 1099511627776,
+        'view_channels': 1024,
+        'send_messages': 2048,
+        'read_message_history': 65536,
+        'connect': 1048576,
+        'speak': 2097152
+    }
     
     for role_config in roles_config:
         try:
@@ -440,20 +457,70 @@ async def create_roles(guild: discord.Guild, roles_config: List[Dict]):
                 role_mapping[role_config['name']] = existing_role
                 continue
             
-            # Create new role
-            permissions = discord.Permissions(permissions=role_config.get('permissions', 0))
-            color = discord.Color(int(role_config.get('color', '#000000').replace('#', ''), 16))
+            # Handle permissions (both numeric and string formats)
+            permissions_value = 0
+            if 'permissions' in role_config:
+                if isinstance(role_config['permissions'], str):
+                    # String-based permission (e.g., "administrator")
+                    permissions_value = permission_mappings.get(role_config['permissions'], 0)
+                elif isinstance(role_config['permissions'], int):
+                    # Numeric permission
+                    permissions_value = role_config['permissions']
+            else:
+                # Default permissions based on role name patterns
+                role_name_lower = role_config['name'].lower()
+                if 'مشرف' in role_name_lower or 'admin' in role_name_lower:
+                    permissions_value = 8  # Administrator
+                elif 'مدرس' in role_name_lower or 'mod' in role_name_lower:
+                    permissions_value = 805306368  # Moderate permissions
+                elif 'مناقش' in role_name_lower:
+                    permissions_value = 104188992  # Discussion permissions
+                elif 'عضو' in role_name_lower:
+                    permissions_value = 104324161  # Member permissions
+                elif 'زائر' in role_name_lower or 'guest' in role_name_lower:
+                    permissions_value = 104324049  # Guest permissions
+                elif 'بوت' in role_name_lower or 'bot' in role_name_lower:
+                    permissions_value = 104324161  # Bot permissions
             
+            # Create permissions object
+            permissions = discord.Permissions(permissions=permissions_value)
+            
+            # Handle color
+            color = discord.Color.default()
+            if 'color' in role_config:
+                try:
+                    color_value = role_config['color']
+                    if isinstance(color_value, str):
+                        color = discord.Color(int(color_value.replace('#', ''), 16))
+                    else:
+                        color = discord.Color(color_value)
+                except:
+                    # Default colors based on role type
+                    role_name_lower = role_config['name'].lower()
+                    if 'مشرف' in role_name_lower:
+                        color = discord.Color.red()
+                    elif 'مدرس' in role_name_lower:
+                        color = discord.Color.blue()
+                    elif 'مناقش' in role_name_lower:
+                        color = discord.Color.green()
+                    elif 'عضو' in role_name_lower:
+                        color = discord.Color.light_grey()
+                    elif 'زائر' in role_name_lower:
+                        color = discord.Color.darker_grey()
+                    elif 'بوت' in role_name_lower:
+                        color = discord.Color.orange()
+            
+            # Create role
             role = await guild.create_role(
                 name=role_config['name'],
                 permissions=permissions,
                 color=color,
-                hoist=role_config.get('hoist', False),
-                mentionable=role_config.get('mentionable', False)
+                hoist=role_config.get('hoist', True if 'مشرف' in role_config['name'] or 'مدرس' in role_config['name'] else False),
+                mentionable=role_config.get('mentionable', True if 'مشرف' in role_config['name'] or 'مدرس' in role_config['name'] else False)
             )
             
             role_mapping[role_config['name']] = role
-            print(f"Created role: {role_config['name']}")
+            print(f"Created role: {role_config['name']} with permissions: {permissions_value}")
             
         except Exception as e:
             print(f"Error creating role {role_config['name']}: {e}")
