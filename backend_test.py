@@ -221,6 +221,33 @@ class DiscordServerManagerTester:
                 success = False
         return success
 
+    def test_delete_config(self):
+        """Test deleting a configuration"""
+        if not self.created_config_id:
+            print("❌ Cannot test delete_config - No config ID available")
+            return False
+            
+        success, _ = self.run_test(
+            "Delete Configuration",
+            "DELETE",
+            f"configs/{self.created_config_id}",
+            200
+        )
+        if success:
+            # Verify deletion by trying to get the config
+            verify_success, _ = self.run_test(
+                "Verify Deletion",
+                "GET",
+                f"configs/{self.created_config_id}",
+                404
+            )
+            if verify_success:
+                print("✅ Configuration successfully deleted")
+            else:
+                print("❌ Configuration not deleted properly")
+                success = False
+        return success
+        
     def test_create_welcome_config(self):
         """Test creating a configuration with welcome and auto-role settings"""
         success, response = self.run_test(
