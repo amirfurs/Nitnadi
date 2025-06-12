@@ -10,6 +10,7 @@ class DiscordServerManagerTester:
         self.tests_run = 0
         self.tests_passed = 0
         self.created_config_id = None
+        self.created_welcome_config_id = None
         self.test_config = {
             "name": f"Test Server Config {datetime.now().strftime('%H%M%S')}",
             "description": "Test configuration for Discord server",
@@ -35,6 +36,58 @@ class DiscordServerManagerTester:
                     "position": 1
                 }
             ]
+        }
+        
+        # Enhanced test config with welcome and auto-role settings
+        self.welcome_test_config = {
+            "name": f"سيرفر مع ترحيب متقدم {datetime.now().strftime('%H%M%S')}",
+            "description": "سيرفر مع رسائل ترحيب وميزات متقدمة",
+            "roles": [
+                {
+                    "name": "🧠 المشرف العام",
+                    "color": "#ff0000",
+                    "permissions": 8,
+                    "mentionable": True,
+                    "hoist": True
+                },
+                {
+                    "name": "👤 العضو",
+                    "color": "#aaaaaa",
+                    "permissions": 104324161,
+                    "mentionable": False,
+                    "hoist": False
+                }
+            ],
+            "channels": [
+                {
+                    "name": "📜 الاستقبال",
+                    "type": "category",
+                    "position": 0
+                },
+                {
+                    "name": "الترحيب",
+                    "type": "text",
+                    "category": "📜 الاستقبال",
+                    "position": 1
+                }
+            ],
+            "welcome_settings": {
+                "enabled": True,
+                "channel": "الترحيب",
+                "message": "أهلاً وسهلاً {user} في {server}! 🎉",
+                "use_embed": True,
+                "title": "مرحباً بك! 🎉",
+                "color": "#00ff00",
+                "thumbnail": True,
+                "footer": "نتمنى لك وقتاً ممتعاً معنا",
+                "goodbye_enabled": True,
+                "goodbye_channel": "الترحيب",
+                "goodbye_message": "وداعاً {username}! نتمنى أن نراك قريباً 👋"
+            },
+            "auto_role_settings": {
+                "enabled": True,
+                "roles": ["👤 العضو"]
+            }
         }
 
     def run_test(self, name, method, endpoint, expected_status, data=None):
