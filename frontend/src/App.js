@@ -309,10 +309,45 @@ function App() {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
           <h3 className="text-xl font-bold text-blue-900 mb-4">📋 كيفية الاستخدام</h3>
           <div className="space-y-3 text-blue-800">
-            <p><strong>1.</strong> أنشئ إعداد سيرفر جديد أو ارفع ملف JSON</p>
-            <p><strong>2.</strong> تأكد من أن البوت متصل ويعمل</p>
-            <p><strong>3.</strong> في Discord، استخدم الأمر: <code className="bg-blue-100 px-2 py-1 rounded">/setup_server</code></p>
-            <p><strong>4.</strong> اختر اسم الإعداد وسيقوم البوت بإنشاء السيرفر تلقائياً</p>
+            <div>
+              <p><strong>1.</strong> أنشئ إعداد سيرفر جديد أو ارفع ملف JSON</p>
+              <p><strong>2.</strong> تأكد من أن البوت متصل ويعمل</p>
+              <p><strong>3.</strong> في Discord، استخدم الأوامر التالية:</p>
+              
+              <div className="mt-3 space-y-2 bg-blue-100 p-4 rounded-lg">
+                <div>
+                  <code className="bg-blue-200 px-2 py-1 rounded text-sm">/setup_server [اسم_الإعداد]</code>
+                  <span className="mr-2 text-sm">- إعداد السيرفر تلقائياً</span>
+                </div>
+                <div>
+                  <code className="bg-blue-200 px-2 py-1 rounded text-sm">/configure_welcome</code>
+                  <span className="mr-2 text-sm">- إعداد رسائل الترحيب</span>
+                </div>
+                <div>
+                  <code className="bg-blue-200 px-2 py-1 rounded text-sm">/configure_autorole</code>
+                  <span className="mr-2 text-sm">- إعداد الأدوار التلقائية</span>
+                </div>
+                <div>
+                  <code className="bg-blue-200 px-2 py-1 rounded text-sm">/test_welcome</code>
+                  <span className="mr-2 text-sm">- اختبار رسالة الترحيب</span>
+                </div>
+                <div>
+                  <code className="bg-blue-200 px-2 py-1 rounded text-sm">/list_configs</code>
+                  <span className="mr-2 text-sm">- عرض الإعدادات المتاحة</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <h4 className="font-semibold text-green-900 mb-2">🎉 الميزات الجديدة:</h4>
+            <ul className="text-green-800 text-sm space-y-1">
+              <li>• رسائل ترحيب تلقائية للأعضاء الجدد</li>
+              <li>• توزيع أدوار تلقائي عند الانضمام</li>
+              <li>• رسائل وداع عند مغادرة الأعضاء</li>
+              <li>• تخصيص كامل لرسائل الترحيب والألوان</li>
+              <li>• اختبار رسائل الترحيب قبل التفعيل</li>
+            </ul>
           </div>
         </div>
 
