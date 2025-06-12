@@ -24,10 +24,10 @@ function App() {
   
   const [jsonInput, setJsonInput] = useState('');
 
-  // Default JSON template
+  // Default JSON template with welcome settings
   const defaultJsonTemplate = {
-    "name": "قالب جديد",
-    "description": "وصف السيرفر",
+    "name": "قالب جديد مع ترحيب",
+    "description": "سيرفر مع رسائل ترحيب وميزات متقدمة",
     "icon_url": "",
     "roles": [
       {
@@ -36,6 +36,13 @@ function App() {
         "permissions": 8,
         "mentionable": true,
         "hoist": true
+      },
+      {
+        "name": "👤 العضو",
+        "color": "#aaaaaa",
+        "permissions": 104324161,
+        "mentionable": false,
+        "hoist": false
       }
     ],
     "channels": [
@@ -45,12 +52,35 @@ function App() {
         "position": 0
       },
       {
-        "name": "📌القوانين",
+        "name": "👋الترحيب",
         "type": "text",
         "category": "📜 الاستقبال",
         "position": 1
+      },
+      {
+        "name": "📌القوانين",
+        "type": "text",
+        "category": "📜 الاستقبال",
+        "position": 2
       }
-    ]
+    ],
+    "welcome_settings": {
+      "enabled": true,
+      "channel": "الترحيب",
+      "message": "أهلاً وسهلاً {user} في {server}! 🎉",
+      "use_embed": true,
+      "title": "مرحباً بك! 🎉",
+      "color": "#00ff00",
+      "thumbnail": true,
+      "footer": "نتمنى لك وقتاً ممتعاً معنا",
+      "goodbye_enabled": true,
+      "goodbye_channel": "الترحيب",
+      "goodbye_message": "وداعاً {username}! نتمنى أن نراك قريباً 👋"
+    },
+    "auto_role_settings": {
+      "enabled": true,
+      "roles": ["👤 العضو"]
+    }
   };
 
   useEffect(() => {
