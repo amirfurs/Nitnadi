@@ -221,30 +221,175 @@ class DiscordServerManagerTester:
                 success = False
         return success
 
-    def test_delete_config(self):
-        """Test deleting a configuration"""
-        if not self.created_config_id:
-            print("❌ Cannot test delete_config - No config ID available")
+    def test_create_welcome_config(self):
+        """Test creating a configuration with welcome and auto-role settings"""
+        success, response = self.run_test(
+            "Create Welcome Configuration",
+            "POST",
+            "configs",
+            200,
+            data=self.welcome_test_config
+        )
+        if success and response:
+            self.created_welcome_config_id = response.get('id')
+            print(f"Created welcome config with ID: {self.created_welcome_config_id}")
+            
+            # Verify welcome settings
+            if 'welcome_settings' in response:
+                welcome_settings = response['welcome_settings']
+                if welcome_settings.get('enabled') == True:
+                    print("✅ Welcome settings enabled")
+                else:
+                    print("❌ Welcome settings not enabled")
+                    success = False
+                    
+                if welcome_settings.get('goodbye_enabled') == True:
+                    print("✅ Goodbye settings enabled")
+                else:
+                    print("❌ Goodbye settings not enabled")
+                    success = False
+            else:
+                print("❌ Welcome settings not found in response")
+                success = False
+                
+            # Verify auto-role settings
+            if 'auto_role_settings' in response:
+                auto_role_settings = response['auto_role_settings']
+                if auto_role_settings.get('enabled') == True:
+                    print("✅ Auto-role settings enabled")
+                else:
+                    print("❌ Auto-role settings not enabled")
+                    success = False
+                    
+                if "👤 العضو" in auto_role_settings.get('roles', []):
+                    print("✅ Auto-role roles correctly set")
+                else:
+                    print("❌ Auto-role roles not correctly set")
+                    success = False
+            else:
+                print("❌ Auto-role settings not found in response")
+                success = False
+        return success
+        
+    def test_get_welcome_config(self):
+        """Test getting a specific welcome configuration"""
+        if not self.created_welcome_config_id:
+            print("❌ Cannot test get_welcome_config - No welcome config ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Get Welcome Configuration",
+            "GET",
+            f"configs/{self.created_welcome_config_id}",
+            200
+        )
+        if success and response:
+            print(f"Retrieved welcome config: {response['name']}")
+            
+            # Verify welcome settings structure
+            if 'welcome_settings' in response:
+                welcome_settings = response['welcome_settings']
+                required_fields = ['enabled', 'channel', 'message', 'use_embed', 
+                                  'title', 'color', 'thumbnail', 'footer', 
+                                  'goodbye_enabled', 'goodbye_channel', 'goodbye_message']
+                
+                missing_fields = [field for field in required_fields if field not in welcome_settings]
+                if not missing_fields:
+                    print("✅ Welcome settings has all required fields")
+                else:
+                    print(f"❌ Welcome settings missing fields: {missing_fields}")
+                    success = False
+            else:
+                print("❌ Welcome settings not found in response")
+                success = False
+                
+            # Verify auto-role settings structure
+            if 'auto_role_settings' in response:
+                auto_role_settings = response['auto_role_settings']
+                required_fields = ['enabled', 'roles']
+                
+                missing_fields = [field for field in required_fields if field not in auto_role_settings]
+                if not missing_fields:
+                    print("✅ Auto-role settings has all required fields")
+                else:
+                    print(f"❌ Auto-role settings missing fields: {missing_fields}")
+                    success = False
+            else:
+                print("❌ Auto-role settings not found in response")
+                success = False
+        return success
+        
+    def test_update_welcome_config(self):
+        """Test updating welcome settings in a configuration"""
+        if not self.created_welcome_config_id:
+            print("❌ Cannot test update_welcome_config - No welcome config ID available")
+            return False
+            
+        # Get the current config first
+        _, current_config = self.run_test(
+            "Get Current Welcome Config",
+            "GET",
+            f"configs/{self.created_welcome_config_id}",
+            200
+        )
+        
+        if not current_config:
+            print("❌ Failed to get current welcome config")
+            return False
+            
+        # Update welcome message and color
+        updated_config = current_config.copy()
+        updated_config["welcome_settings"]["message"] = "مرحباً {user} في سيرفر {server} المميز! 🌟"
+        updated_config["welcome_settings"]["color"] = "#0000ff"
+        
+        success, response = self.run_test(
+            "Update Welcome Configuration",
+            "PUT",
+            f"configs/{self.created_welcome_config_id}",
+            200,
+            data=updated_config
+        )
+        
+        if success and response:
+            if response["welcome_settings"]["message"] == "مرحباً {user} في سيرفر {server} المميز! 🌟":
+                print("✅ Welcome message updated successfully")
+            else:
+                print("❌ Welcome message not updated correctly")
+                success = False
+                
+            if response["welcome_settings"]["color"] == "#0000ff":
+                print("✅ Welcome color updated successfully")
+            else:
+                print("❌ Welcome color not updated correctly")
+                success = False
+        return success
+        
+    def test_delete_welcome_config(self):
+        """Test deleting a welcome configuration"""
+        if not self.created_welcome_config_id:
+            print("❌ Cannot test delete_welcome_config - No welcome config ID available")
             return False
             
         success, _ = self.run_test(
-            "Delete Configuration",
+            "Delete Welcome Configuration",
             "DELETE",
-            f"configs/{self.created_config_id}",
+            f"configs/{self.created_welcome_config_id}",
             200
         )
+        
         if success:
             # Verify deletion by trying to get the config
             verify_success, _ = self.run_test(
-                "Verify Deletion",
+                "Verify Welcome Config Deletion",
                 "GET",
-                f"configs/{self.created_config_id}",
+                f"configs/{self.created_welcome_config_id}",
                 404
             )
+            
             if verify_success:
-                print("✅ Configuration successfully deleted")
+                print("✅ Welcome configuration successfully deleted")
             else:
-                print("❌ Configuration not deleted properly")
+                print("❌ Welcome configuration not deleted properly")
                 success = False
         return success
 
