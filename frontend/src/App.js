@@ -272,6 +272,18 @@ function App() {
                     <span className="ml-2">📋</span>
                     <span>{config.channels?.length || 0} قنوات</span>
                   </div>
+                  {config.welcome_settings?.enabled && (
+                    <div className="flex items-center text-sm text-green-600">
+                      <span className="ml-2">🎉</span>
+                      <span>ترحيب مفعل</span>
+                    </div>
+                  )}
+                  {config.auto_role_settings?.enabled && (
+                    <div className="flex items-center text-sm text-blue-600">
+                      <span className="ml-2">👤</span>
+                      <span>أدوار تلقائية</span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex space-x-2 space-x-reverse">
