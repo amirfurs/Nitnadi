@@ -271,8 +271,19 @@ function App() {
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <span className="ml-2">📋</span>
-                    <span>{config.channels?.length || 0} قنوات</span>
+                    <span>
+                      {config.categories ? 
+                        `${config.categories.length} تصنيفات` : 
+                        `${config.channels?.length || 0} قنوات`
+                      }
+                    </span>
                   </div>
+                  {config.categories && (
+                    <div className="flex items-center text-sm text-purple-600">
+                      <span className="ml-2">🗂️</span>
+                      <span>تنسيق محسّن</span>
+                    </div>
+                  )}
                   {config.welcome_settings?.enabled && (
                     <div className="flex items-center text-sm text-green-600">
                       <span className="ml-2">🎉</span>
