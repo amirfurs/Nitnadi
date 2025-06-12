@@ -28,8 +28,8 @@ APPLICATION_ID = os.environ.get('DISCORD_APPLICATION_ID')
 
 # Discord bot instance
 intents = discord.Intents.default()
-intents.message_content = True
 intents.guilds = True
+intents.guild_messages = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Global variables for bot status
