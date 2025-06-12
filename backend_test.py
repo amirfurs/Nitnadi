@@ -402,12 +402,24 @@ class DiscordServerManagerTester:
         self.test_health_check()
         self.test_bot_status()
         
-        # Test CRUD operations
+        # Test basic CRUD operations
+        print("\n" + "=" * 50)
+        print("Testing Basic Configuration CRUD")
+        print("=" * 50)
         self.test_list_configs()
         self.test_create_config()
         self.test_get_config()
         self.test_update_config()
         self.test_delete_config()
+        
+        # Test welcome and auto-role features
+        print("\n" + "=" * 50)
+        print("Testing Welcome and Auto-Role Features")
+        print("=" * 50)
+        self.test_create_welcome_config()
+        self.test_get_welcome_config()
+        self.test_update_welcome_config()
+        self.test_delete_welcome_config()
         
         # Print results
         print("\n" + "=" * 50)
