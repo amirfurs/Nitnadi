@@ -415,8 +415,8 @@ async def setup_discord_server(guild: discord.Guild, config: Dict, status_id: st
         # Update status
         await update_setup_status(status_id, "running", 50, "إنشاء القنوات والتصنيفات...")
         
-        # Create categories and channels
-        await create_channels_and_categories(guild, config.get('channels', []), role_mapping)
+        # Create categories and channels (supports both formats)
+        await create_channels_and_categories(guild, config, role_mapping)
         
         # Update status
         await update_setup_status(status_id, "completed", 100, "تم إعداد السيرفر بنجاح!")
