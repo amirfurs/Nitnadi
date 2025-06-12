@@ -200,6 +200,12 @@ async def on_member_remove(member):
     except Exception as e:
         print(f"Error handling member remove: {e}")
 
+@bot.event
+async def on_disconnect():
+    global bot_status
+    bot_status['connected'] = False
+    print("تم قطع الاتصال مع Discord.")
+
 # Discord slash commands
 @bot.tree.command(name="setup_server", description="إعداد السيرفر باستخدام ملف JSON")
 async def setup_server_command(interaction: discord.Interaction, config_name: str):
