@@ -104,10 +104,101 @@ async def on_ready():
         print(f"فشل في مزامنة الأوامر: {e}")
 
 @bot.event
-async def on_disconnect():
-    global bot_status
-    bot_status['connected'] = False
-    print("تم قطع الاتصال مع Discord.")
+async def on_member_join(member):
+    """Handle new member joining the server"""
+    try:
+        guild_id = str(member.guild.id)
+        
+        # Get guild configuration from database
+        config = await db.server_configs.find_one({"guild_id": guild_id})
+        if not config:
+            return
+        
+        welcome_settings = config.get('welcome_settings', {})
+        if not welcome_settings.get('enabled', False):
+            return
+        
+        # Send welcome message
+        welcome_channel_name = welcome_settings.get('channel', 'الترحيب')
+        welcome_channel = discord.utils.get(member.guild.channels, name=welcome_channel_name)
+        
+        if welcome_channel:
+            # Create welcome message
+            welcome_message = welcome_settings.get('message', 'مرحباً {user} في {server}! 🎉')
+            welcome_message = welcome_message.format(
+                user=member.mention,
+                server=member.guild.name,
+                username=member.display_name
+            )
+            
+            # Create embed if specified
+            if welcome_settings.get('use_embed', True):
+                embed = discord.Embed(
+                    title=welcome_settings.get('title', 'مرحباً بك! 🎉'),
+                    description=welcome_message,
+                    color=discord.Color(int(welcome_settings.get('color', '#00ff00').replace('#', ''), 16))
+                )
+                
+                if welcome_settings.get('thumbnail'):
+                    embed.set_thumbnail(url=member.display_avatar.url)
+                
+                if welcome_settings.get('footer'):
+                    embed.set_footer(text=welcome_settings['footer'])
+                    
+                await welcome_channel.send(embed=embed)
+            else:
+                await welcome_channel.send(welcome_message)
+        
+        # Auto-assign roles
+        auto_role_settings = config.get('auto_role_settings', {})
+        if auto_role_settings.get('enabled', False):
+            role_names = auto_role_settings.get('roles', [])
+            for role_name in role_names:
+                role = discord.utils.get(member.guild.roles, name=role_name)
+                if role:
+                    await member.add_roles(role)
+                    
+    except Exception as e:
+        print(f"Error handling member join: {e}")
+
+@bot.event
+async def on_member_remove(member):
+    """Handle member leaving the server"""
+    try:
+        guild_id = str(member.guild.id)
+        
+        # Get guild configuration from database
+        config = await db.server_configs.find_one({"guild_id": guild_id})
+        if not config:
+            return
+            
+        welcome_settings = config.get('welcome_settings', {})
+        if not welcome_settings.get('goodbye_enabled', False):
+            return
+        
+        # Send goodbye message
+        goodbye_channel_name = welcome_settings.get('goodbye_channel', 'الترحيب')
+        goodbye_channel = discord.utils.get(member.guild.channels, name=goodbye_channel_name)
+        
+        if goodbye_channel:
+            goodbye_message = welcome_settings.get('goodbye_message', 'وداعاً {username}! 👋')
+            goodbye_message = goodbye_message.format(
+                username=member.display_name,
+                server=member.guild.name
+            )
+            
+            if welcome_settings.get('use_embed', True):
+                embed = discord.Embed(
+                    title='وداعاً! 👋',
+                    description=goodbye_message,
+                    color=discord.Color.red()
+                )
+                await goodbye_channel.send(embed=embed)
+            else:
+                await goodbye_channel.send(goodbye_message)
+                
+    except Exception as e:
+        print(f"Error handling member remove: {e}")
 
 # Discord slash commands
 @bot.tree.command(name="setup_server", description="إعداد السيرفر باستخدام ملف JSON")
