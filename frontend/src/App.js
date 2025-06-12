@@ -526,6 +526,50 @@ function App() {
                   </div>
                 </div>
                 
+                {/* Welcome Settings */}
+                {selectedConfig.welcome_settings && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">🎉 إعدادات الترحيب</h3>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <strong>حالة الترحيب:</strong> {selectedConfig.welcome_settings.enabled ? '✅ مفعل' : '❌ معطل'}
+                        </div>
+                        <div>
+                          <strong>قناة الترحيب:</strong> #{selectedConfig.welcome_settings.channel}
+                        </div>
+                        <div className="md:col-span-2">
+                          <strong>رسالة الترحيب:</strong> {selectedConfig.welcome_settings.message}
+                        </div>
+                        {selectedConfig.welcome_settings.goodbye_enabled && (
+                          <div className="md:col-span-2">
+                            <strong>رسالة الوداع:</strong> {selectedConfig.welcome_settings.goodbye_message}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Auto Role Settings */}
+                {selectedConfig.auto_role_settings?.enabled && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">👤 الأدوار التلقائية</h3>
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="text-sm">
+                        <strong>الأدوار المُوزعة تلقائياً:</strong>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {selectedConfig.auto_role_settings.roles?.map((role, index) => (
+                            <span key={index} className="bg-blue-200 px-2 py-1 rounded text-xs">
+                              {role}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <h4 className="font-semibold text-blue-900 mb-2">كيفية الاستخدام:</h4>
                   <p className="text-blue-800 text-sm">
