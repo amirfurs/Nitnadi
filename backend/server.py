@@ -460,52 +460,94 @@ async def create_roles(guild: discord.Guild, roles_config: List[Dict]):
     
     return role_mapping
 
-async def create_channels_and_categories(guild: discord.Guild, channels_config: List[Dict], role_mapping: Dict):
-    """Create channels and categories based on configuration"""
+async def create_channels_and_categories(guild: discord.Guild, config: Dict, role_mapping: Dict):
+    """Create channels and categories based on configuration - supports both old and new formats"""
     category_mapping = {}
     
-    # Sort channels by position
-    channels_config.sort(key=lambda x: x.get('position', 0))
-    
-    for channel_config in channels_config:
-        try:
-            if channel_config['type'] == 'category':
+    # Check if using new format with 'categories' array
+    if 'categories' in config:
+        # New format: categories with nested channels
+        position = 0
+        for category_config in config['categories']:
+            try:
                 # Create category
                 category = await guild.create_category(
-                    name=channel_config['name'],
-                    position=channel_config.get('position', 0)
+                    name=category_config['name'],
+                    position=position
                 )
-                category_mapping[channel_config['name']] = category
-                print(f"Created category: {channel_config['name']}")
+                category_mapping[category_config['name']] = category
+                print(f"Created category: {category_config['name']}")
+                position += 1
                 
-            elif channel_config['type'] == 'text':
-                # Create text channel
-                category = None
-                if 'category' in channel_config:
-                    category = category_mapping.get(channel_config['category'])
-                
-                channel = await guild.create_text_channel(
-                    name=channel_config['name'],
-                    category=category,
-                    position=channel_config.get('position', 0)
-                )
-                print(f"Created text channel: {channel_config['name']}")
-                
-            elif channel_config['type'] == 'voice':
-                # Create voice channel
-                category = None
-                if 'category' in channel_config:
-                    category = category_mapping.get(channel_config['category'])
-                
-                channel = await guild.create_voice_channel(
-                    name=channel_config['name'],
-                    category=category,
-                    position=channel_config.get('position', 0)
-                )
-                print(f"Created voice channel: {channel_config['name']}")
-                
-        except Exception as e:
-            print(f"Error creating channel {channel_config['name']}: {e}")
+                # Create channels within category
+                for channel_config in category_config.get('channels', []):
+                    channel_type = channel_config.get('type', 'text')
+                    
+                    if channel_type == 'text':
+                        channel = await guild.create_text_channel(
+                            name=channel_config['name'],
+                            category=category,
+                            position=position
+                        )
+                        print(f"Created text channel: {channel_config['name']}")
+                        
+                    elif channel_type == 'voice':
+                        channel = await guild.create_voice_channel(
+                            name=channel_config['name'],
+                            category=category,
+                            position=position
+                        )
+                        print(f"Created voice channel: {channel_config['name']}")
+                    
+                    position += 1
+                    
+            except Exception as e:
+                print(f"Error creating category/channel {category_config['name']}: {e}")
+    
+    elif 'channels' in config:
+        # Old format: flat channels list with category references
+        channels_config = config['channels']
+        channels_config.sort(key=lambda x: x.get('position', 0))
+        
+        for channel_config in channels_config:
+            try:
+                if channel_config['type'] == 'category':
+                    # Create category
+                    category = await guild.create_category(
+                        name=channel_config['name'],
+                        position=channel_config.get('position', 0)
+                    )
+                    category_mapping[channel_config['name']] = category
+                    print(f"Created category: {channel_config['name']}")
+                    
+                elif channel_config['type'] == 'text':
+                    # Create text channel
+                    category = None
+                    if 'category' in channel_config:
+                        category = category_mapping.get(channel_config['category'])
+                    
+                    channel = await guild.create_text_channel(
+                        name=channel_config['name'],
+                        category=category,
+                        position=channel_config.get('position', 0)
+                    )
+                    print(f"Created text channel: {channel_config['name']}")
+                    
+                elif channel_config['type'] == 'voice':
+                    # Create voice channel
+                    category = None
+                    if 'category' in channel_config:
+                        category = category_mapping.get(channel_config['category'])
+                    
+                    channel = await guild.create_voice_channel(
+                        name=channel_config['name'],
+                        category=category,
+                        position=channel_config.get('position', 0)
+                    )
+                    print(f"Created voice channel: {channel_config['name']}")
+                    
+            except Exception as e:
+                print(f"Error creating channel {channel_config['name']}: {e}")
 
 async def update_setup_status(status_id: str, status: str, progress: int, message: str):
     """Update setup status in database"""
