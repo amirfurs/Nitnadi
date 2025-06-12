@@ -30,14 +30,18 @@ APPLICATION_ID = os.environ.get('DISCORD_APPLICATION_ID')
 intents = discord.Intents.default()
 intents.guilds = True
 intents.guild_messages = True
+intents.members = True  # للحصول على أحداث الأعضاء
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# Global variables for bot status
+# Global variables for bot status and active guild settings
 bot_status = {
     'running': False,
     'connected': False,
     'last_error': None
 }
+
+# Store active guild configurations for welcome messages etc.
+active_guild_configs = {}
 
 # Create the main app
 app = FastAPI(title="Discord Server Manager", version="1.0.0")
