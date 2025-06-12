@@ -19,7 +19,8 @@ function App() {
     description: '',
     icon_url: '',
     roles: [],
-    channels: []
+    channels: [],
+    categories: []
   });
   
   const [jsonInput, setJsonInput] = useState('');
